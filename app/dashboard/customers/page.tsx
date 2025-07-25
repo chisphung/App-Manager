@@ -1,8 +1,3 @@
-export default function Customer({ status }: { status: string }) {
-  return (
-    <div>
-      <h2>Customer</h2>
-      <p>{status}</p>
-    </div>
-  );
+export default function Page() {
+  return <p>Customers Page</p>;
 }
