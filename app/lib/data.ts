@@ -5,6 +5,7 @@ import {
   InvoicesTable,
   LatestInvoiceRaw,
   Revenue,
+  Applicant
 } from './definitions';
 import { formatCurrency } from './utils';
 
@@ -67,12 +68,32 @@ export async function fetchFilteredInvoices(query: string, currentPage: number) 
   }
 }
 
-export async function fetchInvoicesPages(query: string) {
+export async function fetchApplicantsPages() {
   try {
-    const res = await fetch(`${BASE_URL}/invoices/pages?query=${encodeURIComponent(query)}`);
-    if (!res.ok) throw new Error('Failed to fetch total number of invoices.');
-    const data = await res.json();
-    return data.totalPages;
+    const res = await fetch(`${BASE_URL}/applicants/`);
+    if (!res.ok) throw new Error('Failed to fetch total number of applicants.');
+    const data: Applicant[] = await res.json();
+    const totalPages = Math.ceil(data.length / ITEMS_PER_PAGE);
+    return data.map((applicant) => ({
+      ...applicant,
+      date_of_birth: new Date(applicant.date_of_birth).toLocaleDateString(),
+    }));
+    // return totalPages;
+  } catch (error) {
+    console.error('Fetch Error:', error);
+    throw error;
+  }
+}
+
+export async function fetchApplicantById(id: string) {
+  try {
+    const res = await fetch(`${BASE_URL}/applicants/${id}`);
+    if (!res.ok) throw new Error('Failed to fetch applicant.');
+    const data: Applicant = await res.json();
+    return {
+      ...data,
+      date_of_birth: new Date(data.date_of_birth).toLocaleDateString(),
+    };
   } catch (error) {
     console.error('Fetch Error:', error);
     throw error;
