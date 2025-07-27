@@ -1,5 +1,5 @@
 import { Card } from '@/app/ui/dashboard/cards';
-import RevenueChart from '@/app/ui/dashboard/revenue-chart';
+import ExperienceChart from '@/app/ui/dashboard/revenue-chart';
 import LatestApplicant from '@/app/ui/dashboard/latest-invoices';
 import { lusitana } from '@/app/ui/fonts';
 import { fetchCardData, fetchRevenue, fetchApplicantsPages } from '@/app/lib/data';
@@ -29,7 +29,7 @@ export default async function Page() {
         /> 
       </div> */}
       <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-4 lg:grid-cols-8">
-        {/* <RevenueChart revenue={revenue}  /> */}
+        <ExperienceChart applicants={latestApplicants} />
         <LatestApplicant latestApplicants={latestApplicants} />
       </div>
     </main>

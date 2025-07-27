@@ -5,7 +5,9 @@ import { z } from 'zod';
 import type { User } from '@/app/lib/definitions';
 import bcrypt from 'bcrypt';
 import postgres from 'postgres';
- 
+import { authenticate } from './app/lib/actions';
+
+const BASE_API = 'http://localhost:8000';
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
  
 async function getUser(email: string): Promise<User | undefined> {
@@ -28,14 +30,26 @@ export const { auth, signIn, signOut } = NextAuth({
           .safeParse(credentials);
  
         if (parsedCredentials.success) {
-          const { email, password } = parsedCredentials.data;
-          const user = await getUser(email);
-          if (!user) return null;
-          const passwordsMatch = await bcrypt.compare(password, user.password);
- 
-          if (passwordsMatch) return user;
+          // console.log("_________________________________________  ");
+          // console.log('Parsed credentials:', parsedCredentials.data.email);
+          // console.log('Parsed credentials:', parsedCredentials.data.password);
+          const res = await fetch(`${BASE_API}/auth/login`, {
+            method: 'POST',
+            body: new URLSearchParams({
+              username: parsedCredentials.data.email,
+              password: parsedCredentials.data.password,
+            }),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          });
+
+          if (res.ok) {
+            const user = await res.json();
+            return user;
+          }
         }
- 
+
         console.log('Invalid credentials');
         return null;
       },
