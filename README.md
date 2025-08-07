@@ -42,6 +42,12 @@ This is a simple app manager that allows you to create, update, and delete appli
 # Usage
 - Open your browser and navigate to `http://localhost:3000` to access the application
 - Use the provided UI to create, update, delete, and manage applications
+# Docker Support
+- This project includes a Dockerfile for easy deployment. You can build and run the application using Docker.
+- To use the Docker compose, navigate to the root directory of the project and run:
+  ```bash
+  docker-compose up
+  ```
 # Future Improvements
 - Develop a running application feature that allows users to run applications directly from the dashboard (you can use docker container, link to the application or cloud service)
 - Enhance the UI with more features and better user experience
