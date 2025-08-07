@@ -4,7 +4,11 @@ This is a simple app manager that allows you to create, update, and delete appli
 - Create applications
 - Update applications
 - Delete applications
-- Toggle application status between running and stopped 
+- Toggle application status between running and stopped
+# UI Overview:
+
+<img width="1838" height="843" alt="image" src="https://github.com/user-attachments/assets/33d6b2d6-c7d3-43b6-8e10-fee87fcde887" />
+
 # Technologies Used
 - Next.js
 - React
