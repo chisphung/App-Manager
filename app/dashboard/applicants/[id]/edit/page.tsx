@@ -1,9 +1,9 @@
-import { fetchApplicantsPages, fetchApplicantById, fetchInvoiceById } from '@/app/lib/data'
+import { fetchApps, fetchAppById} from '@/app/lib/data'
 import Breadcrumbs from '@/app/ui/applicants/breadcrumbs'
 import Form from '@/app/ui/applicants/edit-form'
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { updateApplicant } from '@/app/lib/actions'
+import { updateApp } from '@/app/lib/actions'
 
 export const metadata: Metadata = {
   title: 'Edit Applicant',
@@ -13,9 +13,9 @@ export default async function Page({ params }: { params: { id: string } }) {
   const temp_params = await params;
   const id = temp_params.id;
   // const applicants = await fetchApplicantsPages();
-  const applicant = await fetchApplicantById(id);
+  const application = await fetchAppById(id);
 
-  if (!applicant) notFound()
+  if (!application) notFound()
 
   return (
     <main>
@@ -29,7 +29,7 @@ export default async function Page({ params }: { params: { id: string } }) {
           },
         ]}
       />
-      <Form applicant={applicant}/>
+      <Form application={application}/>
     </main>
   )
 }

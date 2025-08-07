@@ -1,7 +1,7 @@
 'use client'
 
-import { updateApplicant } from '@/app/lib/actions'
-import { ApplicantForm } from '@/app/lib/definitions'
+import { updateApp } from '@/app/lib/actions'
+import { AppType } from '@/app/lib/definitions'
 import { formatDateToLocal } from '@/app/lib/utils'
 import { Button } from '@/app/ui/button'
 import {
@@ -13,11 +13,11 @@ import {
 import Link from 'next/link'
 import { useFormState } from 'react-dom'
 
-export default function EditApplicantForm({
-  applicant,
+export default function EditApplicationForm({
+  application,
   // applicants
 }: {
-  applicant: ApplicantForm | undefined
+  application: AppType | undefined
   // applicants: Applicant[]
 }) {
   type State = {
@@ -25,19 +25,17 @@ export default function EditApplicantForm({
     errors: {
       id?: string[]
       name?: string[]
-      contact_no?: string[]
-      email?: string[]
-      date_of_birth?: string[]
-      education?: string[]
-      experience?: string[]
-      skills?: string[]
+      github?: string[]
+      image_url?: string[]
+      status?: string[]
+      description?: string[]
     }
   }
 
   const initialState: State = { message: null, errors: {} }
 
   // Only bind if applicant.id is defined, otherwise throw or return null
-  if (!applicant?.id) {
+  if (!application?.id) {
     return (
       <div className="p-4 text-red-500">
         Error: Applicant ID is missing. Cannot edit applicant.
@@ -45,130 +43,96 @@ export default function EditApplicantForm({
     )
   }
 
-  const updateApplicantAction = async (state: State, formData: FormData): Promise<State> => {
-    const result = await updateApplicant(applicant.id as string, formData)
+  const updateAppHandler = async (state: State, formData: FormData): Promise<State> => {
+    const result = await updateApp(String(application.id), formData)
     return result ?? state
   }
-  const [, dispatch] = useFormState<State, FormData>(updateApplicantAction, initialState)
+  const [, dispatch] = useFormState<State, FormData>(updateAppHandler, initialState)
   return (
     <form action={dispatch}>
       <div className='rounded-md bg-gray-50 p-4 md:p-6'>
-        {/* Applicant Name */}
+        {/* Application Name */}
         <div className='mb-4'>
-          <label htmlFor='applicant' className='mb-2 block text-sm font-medium'>
-            Applicant Name
+          <label htmlFor='application' className='mb-2 block text-sm font-medium'>
+            Application Name
           </label>
           <div className='relative'>
             <input
-              id='applicant'
+              id='application'
               name='name'
               type='text'
-              defaultValue={applicant?.name}
-              placeholder='Enter applicant name'
+              defaultValue={application?.name}
+              placeholder='Enter application name'
               className='peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500'
             />
             <UserCircleIcon className='pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500' />
           </div>
         </div>
-        {/* Contact No */}
+        {/* Github link */}
         <div className='mb-4'>
-          <label htmlFor='contact_no' className='mb-2 block text-sm font-medium'>
-            Contact No
+          <label htmlFor='github' className='mb-2 block text-sm font-medium'>
+            Github Link
           </label>
           <div className='relative'>
             <input
               id='contact_no'
-              name='contact_no'
+              name='github'
               type='text'
-              defaultValue={applicant?.contact_no}
-              placeholder='Enter contact number'
+              defaultValue={application?.github}
+              placeholder='Enter GitHub link'
               className='peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500'
             />
             <PhoneIcon className='pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500' />
           </div>
         </div>
-           {/* Email */}
+           {/* Image URL */}
       <div className='mb-4'>
-        <label htmlFor='email' className='mb-2 block text-sm font-medium'>
-          Email
+        <label htmlFor='image_url' className='mb-2 block text-sm font-medium'>
+          Image URL
         </label>
         <div className='relative mt-2 rounded-md'>
           <div className='relative'>
             <input
-              id='email'
-              name='email'
-              type='email'
-              defaultValue={applicant?.email}
-              placeholder='Enter email'
+              id='image_url'
+              name='image_url'
+              type='text'
+              defaultValue={application?.image_url}
+              placeholder='Enter image URL'
               className='peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500'
             />
             <UserCircleIcon className='pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900' />
           </div>
         </div>
       </div>
-      {/* Date of Birth */}
+      {/* Status */}
       <div className='mb-4'>
-        <label htmlFor='date_of_birth' className='mb-2 block text-sm font-medium'>
-          Date of Birth
+        <label htmlFor='status' className='mb-2 block text-sm font-medium'>
+          Status
         </label>
         <div className='relative'>
           <input
-            id='date_of_birth'
-            name='date_of_birth'
+            id='status'
+            name='status'
             type='text'
-            defaultValue={formatDateToLocal(applicant?.date_of_birth)}
-            placeholder='Enter date of birth'
+            defaultValue={application?.status}
+            placeholder='Enter status'
             className='peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500'
           />
           <ClockIcon className='pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500' />
         </div>
       </div>
-      {/* Education */}
+      {/* Description */}
       <div className='mb-4'>
-        <label htmlFor='education' className='mb-2 block text-sm font-medium'>
-          Education
+        <label htmlFor='description' className='mb-2 block text-sm font-medium'>
+          Description
         </label>
         <div className='relative'>
           <input
-            id='education'
-            name='education'
+            id='description'
+            name='description'
             type='text'
-            defaultValue={applicant?.education}
-            placeholder='Enter education details'
-            className='peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500'
-          />
-          <UserCircleIcon className='pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900' />
-        </div>
-      </div>
-      {/* Experience */}
-      <div className='mb-4'>
-        <label htmlFor='experience' className='mb-2 block text-sm font-medium'>
-          Experience
-        </label>
-        <div className='relative'>
-          <input
-            id='experience'
-            name='experience'
-            type='text'
-            defaultValue={applicant?.experience}
-            placeholder='Enter experience details'
-            className='peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500'
-          />
-          <CurrencyDollarIcon className='pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900' />
-        </div>
-      </div>
-      {/* Skills */}
-      <div className='mb-4'>
-        <label htmlFor='skills' className='mb-2 block text-sm font-medium'>
-          Skills
-        </label>
-        <div className='relative'>
-          <input
-            id='skills'
-            name='skills'
-            type='text'
-            defaultValue={applicant?.skills}
-            placeholder='Enter skills'
+            defaultValue={application?.description}
+            placeholder='Enter description'
             className='peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500'
           />
           <UserCircleIcon className='pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900' />
@@ -185,8 +149,8 @@ export default function EditApplicantForm({
         </Link>
         <Button
           type='submit'
-          className={`${applicant === undefined && 'bg-gray-400'}`}
-          disabled={applicant === undefined}
+          className={`${application === undefined && 'bg-gray-400'}`}
+          disabled={application === undefined}
         >
           Edit Applicant
         </Button>

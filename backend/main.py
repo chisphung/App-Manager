@@ -27,7 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-load_dotenv('..\.env')
+load_dotenv('../.env')
 DATABASE_URL = os.getenv("POSTGRES_URL")
 ssl_mode = "require"
 
@@ -61,15 +61,14 @@ async def init_database():
     db = await get_db()
     try:
         await db.execute("""
-            CREATE TABLE IF NOT EXISTS appliicants (
+            DROP TABLE IF EXISTS applications;
+            CREATE TABLE applications (
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
-                contact_no VARCHAR(20) NOT NULL,
-                email VARCHAR(255) NOT NULL UNIQUE,
-                date_of_birth DATE NOT NULL,
-                education VARCHAR(255) NOT NULL,
-                experience VARCHAR(255) NOT NULL,
-                skills TEXT NOT NULL,
+                github VARCHAR(20) NOT NULL,
+                image_url VARCHAR(255) NOT NULL,
+                status VARCHAR(20) NOT NULL CHECK (status IN ('running', 'stopped')),
+                description TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             """)
@@ -79,103 +78,142 @@ async def init_database():
         await db.close()
     return {"message": "Database initialized successfully."}
 
-@app.get("/applicants")
-async def get_all_applicants():
+@app.get("/applications")
+async def get_all_applications():
     db = await get_db()
     try:
-        data = await db.fetch("SELECT * FROM appliicants")
+        data = await db.fetch("SELECT * FROM applications")
         return [dict(row) for row in data]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         await db.close()
 
-@app.get("/applicants/{applicant_id}")
-async def get_applicant(applicant_id: int):
+@app.get("/applications/{application_id}")
+async def get_application(application_id: int):
     db = await get_db()
     try:
-        data = await db.fetchrow("SELECT * FROM appliicants WHERE id = $1", applicant_id)
+        data = await db.fetchrow("SELECT * FROM applications WHERE id = $1", application_id)
         if not data:
-            raise HTTPException(status_code=404, detail="Applicant not found")
+            raise HTTPException(status_code=404, detail="Application not found")
         return dict(data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         await db.close()
 
-@app.post("/create_applicant")
-async def create_applicant(
+@app.post("/create_application")
+async def create_application(
     name: str = Form(...),
-    contact_no: str = Form(...),
-    email: str = Form(...),
-    date_of_birth: date = Form(...),
-    education: str = Form(...),
-    experience: str = Form(...),
-    skills: str = Form(...)
+    github: str = Form(...),
+    image_url: str = Form(...),
+    status: str = Form(...),
+    description: str = Form(...)
+):
+    db = await get_db()
+    try:
+        # print(Form(...))
+        # print(f"Inserting application: {name}, {github}, {image_url}, {status}, {description}")
+        await db.execute("""
+            INSERT INTO applications (name, github, image_url, status, description)
+            VALUES ($1, $2, $3, $4, $5)
+        """, name, github, image_url, status, description)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        await db.close()
+    return {"message": "Application created successfully."}
+
+@app.post("/update_application/{application_id}")
+async def update_application(
+    application_id: int,
+    name: str = Form(...),
+    github: str = Form(...),
+    image_url: str = Form(...),
+    status: str = Form(...),
+    description: str = Form(...)
 ):
     db = await get_db()
     try:
         await db.execute("""
-            INSERT INTO appliicants (name, contact_no, email, date_of_birth, education, experience, skills)
-            VALUES ($1, $2, $3, $4, $5, $6, $7)
-        """, name, contact_no, email, date_of_birth, education, experience, skills)
-        return {"message": "Applicant created successfully."}
+            UPDATE applications
+            SET name = $1, github = $2, image_url = $3, status = $4, description = $5
+            WHERE id = $6
+        """, name, github, image_url, status, description, application_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        await db.close()
+    return {"message": "Application updated successfully."}
+@app.post("/toggle_application_status/{application_id}")
+async def toggle_application_status(application_id: int):
+    db = await get_db()
+    try:
+        data = await db.fetchrow("SELECT status FROM applications WHERE id = $1", application_id)
+        if not data:
+            raise HTTPException(status_code=404, detail="Application not found")
+
+        new_status = "stopped" if data["status"] == "running" else "running"
+        await db.execute("UPDATE applications SET status = $1 WHERE id = $2", new_status, application_id)
+        return {"message": "Application status updated successfully."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        await db.close()
+
+@app.delete("/delete_application/{application_id}")
+async def delete_application(application_id: int):
+    db = await get_db()
+    try:
+        await db.execute("DELETE FROM applications WHERE id = $1", application_id)
+        return {"message": "Application deleted successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         await db.close()
 
 
-@app.post("/add_example_applicant")
-async def add_example_applicant():
+@app.post("/add_example_applications")
+async def add_example_applications():
     db = await get_db()
     try:
         await db.execute("""
-            INSERT INTO appliicants (name, contact_no, email, date_of_birth, education, experience, skills)
-            VALUES ('John Doe', '1234567890', 'john.doe@example.com', '1990-01-01', 'Bachelor of Science', '5 years', 'Python, FastAPI');
-            INSERT INTO appliicants (name, contact_no, email, date_of_birth, education, experience, skills)
-            VALUES ('Jane Smith', '0987654321', 'jane.smith@example.com', '1992-02-02', 'Master of Arts', '3 years', 'JavaScript, React');
-            INSERT INTO appliicants (name, contact_no, email, date_of_birth, education, experience, skills)
-            VALUES ('Alice Johnson', '1122334455', 'alice.johnson@example.com', '1994-03-03', 'PhD in Computer Science', '2 years', 'Machine Learning, Python');
-            INSERT INTO appliicants (name, contact_no, email, date_of_birth, education, experience, skills)
-            VALUES ('Bob Brown', '5566778899', 'bob.brown@example.com', '1995-04-04', 'Bachelor of Arts', '4 years', 'Graphic Design, Adobe Photoshop');
+            INSERT INTO applications (name, github, image_url, status, description)
+            VALUES ('Backend app', 'https://github.com', 'https://placehold.co/600x400/6366f1/ffffff?text=Backend+app', 'running', 'this is an example application for backend app');
+            INSERT INTO applications (name, github, image_url, status, description)
+            VALUES ('API app', 'https://github.com', 'https://placehold.co/600x400/ef4444/ffffff?text=API+app', 'running', 'this is an example application for API app');
+            INSERT INTO applications (name, github, image_url, status, description)
+            VALUES ('Database app', 'https://github.com', 'https://placehold.co/600x400/4f46e5/ffffff?text=Database+app', 'running', 'this is an example application for database app');
+            INSERT INTO applications (name, github, image_url, status, description)
+            VALUES ('Frontend app', 'https://github.com', 'https://placehold.co/600x400/ec4899/ffffff?text=Frontend+app', 'running', 'this is an example application for frontend app');
+            INSERT INTO applications (name, github, image_url, status, description)
+            VALUES ('RAG app', 'https://github.com', 'https://placehold.co/600x400/f59e0b/ffffff?text=RAG+app', 'stopped', 'this is an example application for RAG app');
+            INSERT INTO applications (name, github, image_url, status, description)
+            VALUES ('ETL pipeline', 'https://github.com', 'https://placehold.co/600x400/10b981/ffffff?text=ETL+pipeline', 'stopped', 'this is an example application for ETL pipeline');
         """)
-        return {"message": "Example applicant added successfully."}
+        return {"message": "Example applications added successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         await db.close()
 
-@app.post("/update_applicant/{applicant_id}")
-async def update_applicant(
-    applicant_id: int,
+@app.post("/update_applications/{application_id}")
+async def update_application(
+    application_id: int,
     name: str = Form(...),
-    contact_no: str = Form(...),
-    email: str = Form(...),
-    date_of_birth: date = Form(...),
-    education: str = Form(...),
-    experience: str = Form(...),
-    skills: str = Form(...)
+    github: str = Form(...),
+    image_url: str = Form(...),
+    status: str = Form(...),
+    description: str = Form(...)
 ):
     db = await get_db()
     try:
         await db.execute("""
-            UPDATE appliicants
-            SET name = $1, contact_no = $2, email = $3, date_of_birth = $4, education = $5, experience = $6, skills = $7
-            WHERE id = $8
-        """, name, contact_no, email, date_of_birth, education, experience, skills, applicant_id)
-        return {"message": "Applicant updated successfully."}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        await db.close()
-
-@app.delete("/delete_applicant/{applicant_id}")
-async def delete_applicant(applicant_id: int):
-    db = await get_db()
-    try:
-        await db.execute("DELETE FROM appliicants WHERE id = $1", applicant_id)
-        return {"message": "Applicant deleted successfully."}
+            UPDATE applications
+            SET name = $1, github = $2, image_url = $3, status = $4, description = $5
+            WHERE id = $6
+        """, name, github, image_url, status, description, application_id)
+        return {"message": "Application updated successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:

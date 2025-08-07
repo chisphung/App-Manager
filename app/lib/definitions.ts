@@ -9,91 +9,26 @@ export type User = {
   password: string;
 };
 
-export type Customer = {
+export type AppType = {
   id: string;
   name: string;
-  email: string;
+  github: string;
+  status: string;
+  description: string;
   image_url: string;
 };
 
-export type Applicant = {
-  id: string;
-  name: string;
-  contact_no: string;
-  email: string;
-  date_of_birth: string;
-  education: string;
-  experience: string;
-  skills: string;
-};
-export type ApplicantForm = {
-  id?: string;
-  name: string;
-  contact_no: string;
-  email: string;
-  date_of_birth: string;
-  education: string;
-  experience: string;
-  skills: string;
-};
-export type Revenue = {
-  month: string;
-  revenue: number;
+export type AppCardProps = {
+  app: AppType;
+  onToggleStatus: (id: string) => void;
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
 };
 
-export type LatestInvoice = {
+export type AppTable = {
   id: string;
   name: string;
+  github: string;
   image_url: string;
-  email: string;
-  amount: string;
+  status: 'running' | 'stopped';
 };
-
-// The database returns a number for amount, but we later format it to a string with the formatCurrency function
-export type LatestInvoiceRaw = Omit<LatestInvoice, 'amount'> & {
-  amount: number;
-};
-
-export type InvoicesTable = {
-  id: string;
-  customer_id: string;
-  name: string;
-  email: string;
-  image_url: string;
-  date: string;
-  amount: number;
-  status: 'pending' | 'paid';
-};
-
-export type CustomersTableType = {
-  id: string;
-  name: string;
-  email: string;
-  image_url: string;
-  total_invoices: number;
-  total_pending: number;
-  total_paid: number;
-};
-
-export type FormattedCustomersTable = {
-  id: string;
-  name: string;
-  email: string;
-  image_url: string;
-  total_invoices: number;
-  total_pending: string;
-  total_paid: string;
-};
-
-export type CustomerField = {
-  id: string;
-  name: string;
-};
-
-export type InvoiceForm = {
-  id: string;
-  customer_id: string;
-  amount: number;
-  status: 'pending' | 'paid';
-};
-

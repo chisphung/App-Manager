@@ -1,4 +1,4 @@
-import { fetchApplicantsPages, fetchCustomers } from '@/app/lib/data'
+import { fetchApps } from '@/app/lib/data'
 import Breadcrumbs from '@/app/ui/applicants/breadcrumbs'
 import Form from '@/app/ui/applicants/create-form'
 import { Metadata } from 'next'
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 }
 
 export default async function Page() {
-  const applicants = await fetchApplicantsPages()
+  const applications = await fetchApps()
 
   return (
     <main>
@@ -22,7 +22,7 @@ export default async function Page() {
           },
         ]}
       />
-      <Form applicant={applicants} />
+      <Form applications={applications[0]} />
     </main>
   )
 }

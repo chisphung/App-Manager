@@ -1,6 +1,6 @@
-import { fetchApplicantsPages } from '@/app/lib/data'
+import { fetchAppById, fetchApps } from '@/app/lib/data'
 import { lusitana } from '@/app/ui/fonts'
-import { CreateApplicant } from '@/app/ui/applicants/buttons'
+import { CreateApp } from '@/app/ui/applicants/buttons'
 import Pagination from '@/app/ui/applicants/pagination'
 import InvoicesTable from '@/app/ui/applicants/table'
 import Search from '@/app/ui/search'
@@ -9,7 +9,7 @@ import { Suspense } from 'react'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Invoices',
+  title: 'Applicants',
 }
 
 export default async function Page({
@@ -23,16 +23,16 @@ export default async function Page({
   const params = await searchParams;
   const query = params?.query || '';
   const currentPage = Number(params?.page) || 1;
-  const totalPages = await fetchApplicantsPages();
+  const totalPages = await fetchApps();
 
   return (
     <div className='w-full'>
       <div className='flex w-full items-center justify-between'>
-        <h1 className={`${lusitana.className} text-2xl`}>Invoices</h1>
+        <h1 className={`${lusitana.className} text-2xl`}>Applications</h1>
       </div>
       <div className='mt-4 flex items-center justify-between gap-2 md:mt-8'>
-        <Search placeholder='Search invoices...' />
-        <CreateApplicant />
+        <Search placeholder='Search applications...' />
+        <CreateApp />
       </div>
       <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}>
         <InvoicesTable/>

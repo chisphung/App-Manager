@@ -1,126 +1,136 @@
+// app/lib/actions.ts
 'use server';
 
 import { z } from 'zod';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { AppType } from './definitions'; // Adjust the import path as necessary
+import { UpdateApp } from '../ui/applicants/buttons';
+const BASE_API = 'http://localhost:8000';
 
-const FormSchema = z.object({
-  id: z.string().optional(),
+const appSchema = z.object({
+  id: z.string(),
   name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email address'),
-  contact_no: z.string().min(1, 'Contact number is required'),
-  date_of_birth: z.string().min(1, 'Date of birth is required'),
-  education: z.string().min(1, 'Education is required'),
-  experience: z.string().min(1, 'Experience is required'),
-  skills: z.string().optional(),
+  github: z.string().url('Invalid GitHub URL'),
+  status: z.enum(['running', 'stopped']),
+  description: z.string().optional(),
+  image_url: z.string().url('Invalid image URL'), // Changed to image_url
 });
 
-// const CreateInvoice = FormSchema.omit({ id: true, date: true });
-// const UpdateInvoice = FormSchema.omit({ id: true, date: true });
-const CreateApplicant = FormSchema.omit({ id: true });
-const UpdateApplicant = FormSchema.pick({
-  id: true,
-  name: true,
-  email: true,
-  contact_no: true,
-  date_of_birth: true,
-  education: true,
-  experience: true,
-  skills: true,
-});
+export async function createApp(formData: FormData): Promise<void> {
+try {
+    const app: AppType = {
+      id: formData.get('id') as string,
+      name: formData.get('name') as string,
+      github: formData.get('github') as string,
+      image_url: formData.get('image_url') as string,
+      status: formData.get('status') as string,
+      description: formData.get('description') as string,
+    };
 
-const BASE_API = 'http://localhost:8000'; // change to your deployed URL when needed
+    // Create FormData object to match backend expectations
+    const formDataToSend = new FormData();
+    formDataToSend.append('name', app.name);
+    formDataToSend.append('github', app.github);
+    formDataToSend.append('image_url', app.image_url);
+    formDataToSend.append('status', app.status);
+    if (app.description) {
+      formDataToSend.append('description', app.description);
+    }
 
-// ---------------- CREATE ----------------
-export async function createApplicant(formData: FormData) {
-  const { name, email, contact_no, date_of_birth, education, experience, skills } = CreateApplicant.parse({
-    name: formData.get('name'),
-    contact_no: formData.get('contact_no'),
-    email: formData.get('email'),
-    date_of_birth: formData.get('date_of_birth'),
-    education: formData.get('education'),
-    experience: formData.get('experience'),
-    skills: formData.get('skills'),
-  });
+    // Send POST request to backend
+    const res = await fetch(`${BASE_API}/create_application`, {
+      method: 'POST',
+      body: formDataToSend,
+    });
 
-  const res = await fetch(`${BASE_API}/create_applicant`, {
-    method: 'POST',
-    body: new URLSearchParams({
-      name,
-      email,
-      contact_no,
-      date_of_birth,
-      education,
-      experience,
-      skills: skills ?? '',
-    }),
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  });
-
-  // if (!res.ok) {
-  //   throw new Error('Failed to create invoice');
-  // }
-  // 303 code
-    // if (res.status !== 303) {
-    //   const error = await res.json();
-    //   throw new Error(error.message || 'Failed to create invoice');
-    // }
-
-  revalidatePath('/dashboard/applicants');
-  redirect('/dashboard/applicants');
-}
-
-// ---------------- UPDATE ----------------
-export async function updateApplicant(id: string, formData: FormData) {
-  const { name, email, contact_no, date_of_birth, education, experience, skills } = UpdateApplicant.parse({
-    // id: formData.get('id'),
-    name: formData.get('name'),
-    contact_no: formData.get('contact_no'),
-    email: formData.get('email'),
-    date_of_birth: formData.get('date_of_birth'),
-    education: formData.get('education'),
-    experience: formData.get('experience'),
-    skills: formData.get('skills'),
-  });
-  const res = await fetch(`${BASE_API}/update_applicant/${id}`, {
-    method: 'POST',
-    body: new URLSearchParams({
-      name,
-      email,
-      contact_no,
-      date_of_birth,
-      education,
-      experience,
-      skills: skills ?? '',
-    }),
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  });
-
-  // if (!res.ok) {
-  //   throw new Error('Failed to update invoice');
-  // }
-
-  revalidatePath('/dashboard/applicants');
-  redirect('/dashboard/applicants');
-}
-
-// ---------------- DELETE ----------------
-export async function deleteApplicant(id: string) {
-  const res = await fetch(`${BASE_API}/delete_applicant/${id}`, {
-    method: 'DELETE',
-  });
-
-  if (!res.ok) {
-    throw new Error('Failed to delete applicant');
+    // Check response
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.detail || 'Failed to create application');
+    }
+    } catch (error) {
+    // Handle Zod or API errors
+    console.error('Error creating application:', error);
+    throw new Error('Failed to create application');
   }
+    // Revalidate and redirect
+    revalidatePath('/dashboard/');
+    redirect('/dashboard/');
 
-  revalidatePath('/dashboard/applicants');
-  redirect('/dashboard/applicants');
 }
+
+export async function fetchApps(): Promise<AppType[]> {
+  const res = await fetch(`${BASE_API}/applications`);
+  // if (!res.ok) {
+  //   throw new Error('Failed to fetch applications');
+  // }
+  return res.json();
+}
+
+
+  // Handler to toggle an app's status (Run/Stop)
+export const handleToggleStatus = async (appId: string) => {
+  const app = await fetch(`${BASE_API}/applications/${appId}`).then(res => res.json());
+  if (!app) {
+    console.error(`App with ID ${appId} not found.`);
+    return;
+  }
+  const newStatus = app.status === 'running' ? 'stopped' : 'running';
+  const res = await fetch(`${BASE_API}/toggle_application_status/${appId}`, {
+    method: 'POST',
+  });
+  if (res.ok) {
+    app.status = newStatus; // Update the app status locally
+    revalidatePath('/dashboard/'); // Revalidate the path to update the UI
+    return app.status;
+
+  } else {
+    console.error(`Failed to toggle status for app with ID ${appId}`);
+  }
+};
+
+  // Handler to edit an app
+export async function updateApp(id: string, formData: FormData) {
+  const { name, github, status, description, image_url } = appSchema.parse({
+    id, 
+    github: formData.get('github'),
+    image_url: formData.get('image_url'),    
+    name: formData.get('name'),
+    status: formData.get('status'),
+    description: formData.get('description'),
+  });
+  const res = await fetch(`${BASE_API}/update_application/${id}`, {
+    method: 'POST',
+    body: new URLSearchParams({
+      name,
+      github,
+      status,
+      description: description ?? '',
+      image_url,
+    }),
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+  if (res.ok) {
+    revalidatePath('/dashboard/');
+    redirect('/dashboard/');
+  }
+}
+
+  // Handler to delete an app
+export const handleDeleteApp = async (appId: string) => {
+    const app = await fetch(`${BASE_API}/applications/${appId}`).then(res => res.json());
+    if (!app) {
+      console.error(`App with ID ${appId} not found.`);
+      return;
+    }
+    const res = await fetch(`${BASE_API}/delete_application/${appId}`, {
+      method: 'DELETE',
+    });
+  };
+
 
 // ---------------- AUTH ----------------
 import { signIn } from '@/auth';

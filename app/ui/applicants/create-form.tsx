@@ -1,137 +1,113 @@
-import { Applicant } from '@/app/lib/definitions';
+import { AppType } from '@/app/lib/definitions';
 import Link from 'next/link';
 import {
   CheckIcon,
-  ClockIcon,
-  CurrencyDollarIcon,
-  UserCircleIcon,
+  LinkIcon,
+  PhotoIcon,
+  DocumentTextIcon,
 } from '@heroicons/react/24/outline';
 import { Button } from '@/app/ui/button';
-import { createApplicant } from '@/app/lib/actions';
+import { createApp } from '@/app/lib/actions';
+import { v4 as uuidv4 } from 'uuid'; // For generating ID
 
-export default function Form({ applicant }: { applicant: Applicant }) {
+// Make applications prop optional
+export default function Form({ applications }: { applications?: AppType }) {
   return (
-    <form action={createApplicant} className="space-y-6">
+    <form action={createApp} className="space-y-6">
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
-        {/* Customer Name */}
         <div className="mb-4">
-          <label htmlFor="applicant" className="mb-2 block text-sm font-medium">
+          <label htmlFor="name" className="mb-2 block text-sm font-medium">
             Applicant Name
           </label>
           <div className="relative">
             <input
-              id="applicant"
+              id="name"
               name="name"
               type="text"
-              defaultValue={applicant.name}
+              defaultValue={applications?.name || ''}
               placeholder="Enter applicant name"
               className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+              required
             />
-            <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
-        </div>
+            <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+          </div>
         </div>
 
-        {/* Contact No */}
+        {/* GitHub Link */}
         <div className="mb-4">
-          <label htmlFor="contact_no" className="mb-2 block text-sm font-medium">
-            Contact No
+          <label htmlFor="github" className="mb-2 block text-sm font-medium">
+            GitHub Link
           </label>
           <div className="relative">
             <input
-              id="contact_no"
-              name="contact_no"
-              type="text"
-              defaultValue={applicant.contact_no}
-              placeholder="Enter contact number"
+              id="github"
+              name="github"
+              type="url"
+              defaultValue={applications?.github || ''}
+              placeholder="Enter GitHub link"
               className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+              required
             />
-            <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+            <LinkIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
           </div>
         </div>
-        {/* Email */}
+
+        {/* Image URL */}
         <div className="mb-4">
-          <label htmlFor="email" className="mb-2 block text-sm font-medium">
-            Email
+          <label htmlFor="image_url" className="mb-2 block text-sm font-medium">
+            Image URL
+          </label>
+          <div className="relative">
+            <input
+              id="image_url"
+              name="image_url"
+              type="url"
+              defaultValue={applications?.image_url || 'https://placehold.co/28x28/6366f1/ffffff?text=Profile'}
+              placeholder="Enter image URL"
+              className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+              required
+            />
+            <PhotoIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="mb-4">
+          <label htmlFor="status" className="mb-2 block text-sm font-medium">
+            Status
           </label>
           <div className="relative mt-2 rounded-md">
             <div className="relative">
               <input
-                id="email"
-                name="email"
-                type="email"
-                defaultValue={applicant.email}
-                placeholder="Enter email"
+                id="status"
+                name="status"
+                type="text"
+                defaultValue={applications?.status || 'pending'}
+                placeholder="Enter status"
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                required
               />
-              <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+              <CheckIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
             </div>
           </div>
         </div>
-        {/* Date of Birth */}
+
+        {/* Description */}
         <div className="mb-4">
-          <label htmlFor="date_of_birth" className="mb-2 block text-sm font-medium">
-            Date of Birth
+          <label htmlFor="description" className="mb-2 block text-sm font-medium">
+            Description
           </label>
           <div className="relative">
             <input
-              id="date_of_birth"
-              name="date_of_birth"
-              type="date"
-              defaultValue={applicant.date_of_birth}
-              className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-            />
-            <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
-          </div>
-        </div>
-        {/* Education */}
-        <div className="mb-4">
-          <label htmlFor="education" className="mb-2 block text-sm font-medium">
-            Education
-          </label>
-          <div className="relative">
-            <input
-              id="education"
-              name="education"
+              id="description"
+              name="description"
               type="text"
-              defaultValue={applicant.education}
-              placeholder="Enter education details"
+              defaultValue={applications?.description || ''}
+              placeholder="Enter description"
               className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+              required
             />
-            <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
-          </div>
-        </div>
-        {/* Experience */}
-        <div className="mb-4">
-          <label htmlFor="experience" className="mb-2 block text-sm font-medium">
-            Experience
-          </label>
-          <div className="relative">
-            <input
-              id="experience"
-              name="experience"
-              type="text"
-              defaultValue={applicant.experience}
-              placeholder="Enter experience details"
-              className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-            />
-            <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
-          </div>
-        </div>
-        {/* Skills */}
-        <div className="mb-4">
-          <label htmlFor="skills" className="mb-2 block text-sm font-medium">
-            Skills
-          </label>
-          <div className="relative">
-            <input
-              id="skills"
-              name="skills"
-              type="text"
-              defaultValue={applicant.skills}
-              placeholder="Enter skills"
-              className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
-            />
-            <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+            <DocumentTextIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
           </div>
         </div>
       </div>
@@ -142,7 +118,7 @@ export default function Form({ applicant }: { applicant: Applicant }) {
         >
           Cancel
         </Link>
-        <Button type="submit">Create Applicant</Button>
+        <Button type="submit">Create Application</Button>
       </div>
     </form>
   );
